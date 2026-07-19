@@ -52,10 +52,12 @@ export const createCheckoutSession = async (req: AuthRequest, res: Response): Pr
                            errorMessage.includes('API key') || 
                            errorMessage.includes('No API key') ||
                            errorMessage.includes('authentication') ||
-                           errorMessage.includes('Invalid API Key');
+                           errorMessage.includes('Invalid API Key') ||
+                           !process.env.STRIPE_SECRET_KEY ||
+                           process.env.STRIPE_SECRET_KEY.includes('dummy');
                            
-      if (process.env.NODE_ENV !== 'production' || isKeyError) {
-        console.warn('Stripe key is invalid, revoked, or running in local dev. Falling back to mock checkout session.');
+      if (isKeyError) {
+        console.warn('Stripe key is invalid, revoked, or missing. Falling back to mock checkout session.');
         
         // Auto-upgrade user to Pro in database for local development/testing sandbox bypass
         user.plan = 'pro';
