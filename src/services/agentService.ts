@@ -8,7 +8,7 @@ const openai = new OpenAI({
 });
 
 async function callLLM<T>(messages: any[], schema: z.ZodSchema<T>): Promise<T> {
-  const jsonSchema = zodToJsonSchema(schema, "responseSchema");
+  const jsonSchema = zodToJsonSchema(schema as any, "responseSchema");
   const systemMessage = {
     role: "system",
     content: `You are an expert AI habit coach. You must strictly output valid JSON matching the following schema. Do not output anything other than JSON.\n\nSchema: ${JSON.stringify(jsonSchema)}`
