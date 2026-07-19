@@ -60,7 +60,19 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
   const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    let user = await User.findOne({ email });
+
+    // Auto-create demo user if it doesn't exist
+    if (!user && email === 'demo@habitpilot.com' && password === 'password123') {
+      const salt = await bcrypt.genSalt(10);
+      const passwordHash = await bcrypt.hash(password, salt);
+      user = await User.create({
+        name: 'Demo User',
+        email: 'demo@habitpilot.com',
+        passwordHash,
+        plan: 'free'
+      });
+    }
 
     if (user && user.passwordHash && (await bcrypt.compare(password, user.passwordHash))) {
       const { accessToken, refreshToken } = generateTokens(user._id.toString());
