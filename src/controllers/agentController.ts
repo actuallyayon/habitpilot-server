@@ -123,7 +123,11 @@ export const createPlanManual = async (req: AuthRequest, res: Response): Promise
 };
 
 export const deletePlan = async (req: AuthRequest, res: Response): Promise<void> => {
-  const { planId } = req.params;
+  const planId = req.params.planId;
+  if (!planId) {
+    res.status(400).json({ message: 'Plan ID is required' });
+    return;
+  }
   try {
     const plan = await HabitPlan.findOne({ _id: planId, userId: req.user._id });
     if (!plan) {
