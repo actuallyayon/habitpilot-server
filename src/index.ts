@@ -14,7 +14,10 @@ connectDB();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
+app.use(cors({ 
+  origin: process.env.CLIENT_URL || ['http://localhost:3000', 'https://habitpilot-client.vercel.app'], 
+  credentials: true 
+}));
 
 // Stripe webhook requires raw body
 app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }));

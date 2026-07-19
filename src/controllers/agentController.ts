@@ -87,3 +87,26 @@ export const generateMonthlyReport = async (req: AuthRequest, res: Response): Pr
     res.status(500).json({ message: 'Error generating monthly report', error: (error as Error).message });
   }
 };
+
+export const getActivePlans = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const plans = await HabitPlan.find({ userId: req.user._id, status: 'active' }).sort({ createdAt: -1 });
+    res.json(plans);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching plans', error: (error as Error).message });
+  }
+};
+
+export const getCheckIns = async (req: AuthRequest, res: Response): Promise<void> => {
+  const { planId } = req.params;
+  const { date } = req.query;
+  try {
+    const query: any = { planId };
+    if (date) query.date = date;
+    
+    const checkIns = await CheckIn.find(query).sort({ date: -1 });
+    res.json(checkIns);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching check-ins', error: (error as Error).message });
+  }
+};
