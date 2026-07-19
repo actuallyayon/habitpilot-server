@@ -48,7 +48,7 @@ export const createCheckoutSession = async (req: AuthRequest, res: Response): Pr
       await user.save();
       
       // Redirect straight back to dashboard with success flag
-      res.status(200).json({ url: `${process.env.CLIENT_URL || 'http://localhost:3000'}/dashboard?success=true` });
+      res.status(200).json({ url: `/dashboard?success=true` });
     }
   } catch (error) {
     res.status(500).json({ message: 'Error in checkout process', error: (error as Error).message });
