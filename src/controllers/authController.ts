@@ -39,10 +39,10 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
     });
 
     if (user) {
-      const { accessToken, refreshToken } = generateTokens(user._id as string);
+      const { accessToken, refreshToken } = generateTokens(user._id.toString());
       setRefreshTokenCookie(res, refreshToken);
       res.status(201).json({
-        _id: user.id,
+        _id: user._id.toString(),
         name: user.name,
         email: user.email,
         plan: user.plan,
@@ -63,10 +63,10 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     const user = await User.findOne({ email });
 
     if (user && user.passwordHash && (await bcrypt.compare(password, user.passwordHash))) {
-      const { accessToken, refreshToken } = generateTokens(user._id as string);
+      const { accessToken, refreshToken } = generateTokens(user._id.toString());
       setRefreshTokenCookie(res, refreshToken);
       res.json({
-        _id: user.id,
+        _id: user._id.toString(),
         name: user.name,
         email: user.email,
         plan: user.plan,
@@ -97,7 +97,7 @@ export const refresh = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const { accessToken, refreshToken: newRefreshToken } = generateTokens(user._id as string);
+    const { accessToken, refreshToken: newRefreshToken } = generateTokens(user._id.toString());
     setRefreshTokenCookie(res, newRefreshToken);
     res.json({ accessToken });
   } catch (error) {
@@ -112,7 +112,7 @@ export const googleAuth = async (req: Request, res: Response): Promise<void> => 
   try {
     const ticket = await client.verifyIdToken({
       idToken: token,
-      audience: process.env.GOOGLE_CLIENT_ID,
+      audience: process.env.GOOGLE_CLIENT_ID as string,
     });
     
     const payload = ticket.getPayload();
@@ -121,7 +121,10 @@ export const googleAuth = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    const { sub: googleId, email, name, picture: avatarUrl } = payload;
+    const { sub: googleId, picture: avatarUrl } = payload;
+    const email = payload.email as string;
+    const name = payload.name as string;
+    
     let user = await User.findOne({ email });
 
     if (!user) {
@@ -129,7 +132,7 @@ export const googleAuth = async (req: Request, res: Response): Promise<void> => 
         name,
         email,
         googleId,
-        avatarUrl,
+        avatarUrl: avatarUrl || '',
       });
     } else if (!user.googleId) {
       user.googleId = googleId;
@@ -137,11 +140,11 @@ export const googleAuth = async (req: Request, res: Response): Promise<void> => 
       await user.save();
     }
 
-    const { accessToken, refreshToken } = generateTokens(user._id as string);
+      const { accessToken, refreshToken } = generateTokens(user._id.toString());
     setRefreshTokenCookie(res, refreshToken);
     
     res.json({
-      _id: user.id,
+      _id: user._id.toString(),
       name: user.name,
       email: user.email,
       plan: user.plan,

@@ -5,6 +5,7 @@ import User from '../models/User';
 import Subscription from '../models/Subscription';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+  // @ts-ignore
   apiVersion: '2025-01-27.acacia',
 });
 
@@ -70,7 +71,7 @@ export const handleStripeWebhook = async (req: Request, res: Response): Promise<
             user.stripeCustomerId = customerId;
             await user.save();
 
-            const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+            const subscription: any = await stripe.subscriptions.retrieve(subscriptionId);
             await Subscription.create({
               userId,
               stripeSubscriptionId: subscriptionId,
@@ -83,7 +84,7 @@ export const handleStripeWebhook = async (req: Request, res: Response): Promise<
 
       case 'customer.subscription.updated':
       case 'customer.subscription.deleted':
-        const sub = event.data.object as Stripe.Subscription;
+        const sub: any = event.data.object as Stripe.Subscription;
         const dbSub = await Subscription.findOne({ stripeSubscriptionId: sub.id });
         if (dbSub) {
           dbSub.status = sub.status;
