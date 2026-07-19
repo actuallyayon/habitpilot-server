@@ -95,19 +95,3 @@ npm run build
 npm start
 ```
 The server will start listening at [http://localhost:5000](http://localhost:5000).
-
----
-
-## 📜 Key Commit History (10+ Meaningful Commits)
-
-1. `feat: add updateProfile backend controller and PUT /profile route` — Added the backend controller to update user name and securely hash and save new user passwords, exposing the `/profile` endpoint.
-2. `feat: add admin controller, routes, middleware, and User status field for user blocking and plan updates` — Implemented statistical aggregations, user block/unblock routes, manual plan adjustments, and the `adminOnly` route access middleware.
-3. `fix: restrict checkout session mock fallback only to genuine key errors so valid keys trigger stripe sandbox page` — Fixed local development checkout redirection flows so valid Stripe keys connect directly to sandbox payment checkouts.
-4. `fix: set refresh cookie sameSite 'none' for production cross-domain support and make CORS whitelist dynamic` — Replaced static CORS array with regex matches for all vercel domains and configured Secure/SameSite cookies for Vercel backend integration.
-5. `fix: resolve stripe controller syntax error, agent controller type checks, and add stripe mock fallbacks for local dev` — Handled compilation check errors and added mock upgrades for missing stripe secrets.
-6. `fix: implement real stripe sandbox checkout via inline price_data` — Integrated Stripe checkout session generation.
-7. `fix: auto-create demo user on login if it doesn't exist` — Configured sandbox login seeding.
-8. `feat: add manual plan creation and deletion endpoints` — Exposed server routines to handle custom routine templates.
-9. `feat: add explore controller and route` — Exposes public explore endpoints for AI plan templates.
-10. `fix: sanitize LLM JSON output and remove native json mode to fix groq 500 error` — Corrected system prompt sanitization routines to prevent compilation crashes during AI parsing.
-11. `feat: add GET endpoints for plans and checkins, update CORS` — Implemented core habit routing endpoints.
