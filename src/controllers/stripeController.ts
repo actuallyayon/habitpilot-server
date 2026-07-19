@@ -17,13 +17,6 @@ export const createCheckoutSession = async (req: AuthRequest, res: Response): Pr
       return;
     }
 
-    // Try to use real Stripe if configured
-    try {
-      if (!process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY.includes('your_stripe')) {
-        throw new Error('Stripe not configured');
-      }
-
-      const priceId = 'price_dummy'; // In a real app, this is an env variable
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
         mode: 'subscription',
@@ -31,24 +24,28 @@ export const createCheckoutSession = async (req: AuthRequest, res: Response): Pr
         client_reference_id: user._id.toString(),
         line_items: [
           {
-            price: priceId,
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: 'HabitPilot Pro',
+                description: 'Unlock AI Replanning and Unlimited Habit Plans',
+              },
+              recurring: {
+                interval: 'month',
+              },
+              unit_amount: 999, // $9.99
+            },
             quantity: 1,
           },
         ],
-        success_url: `${process.env.CLIENT_URL || 'http://localhost:3000'}/dashboard?success=true`,
-        cancel_url: `${process.env.CLIENT_URL || 'http://localhost:3000'}/pricing?canceled=true`,
+        success_url: `${req.headers.origin || process.env.CLIENT_URL || 'http://localhost:3000'}/dashboard?success=true`,
+        cancel_url: `${req.headers.origin || process.env.CLIENT_URL || 'http://localhost:3000'}/pricing?canceled=true`,
       });
 
       res.status(200).json({ url: session.url });
     } catch (stripeError) {
-      // MOCK FALLBACK: If Stripe fails (e.g. missing keys or dummy price), mock the upgrade
-      console.log('Stripe checkout failed or not configured, falling back to mock upgrade:', (stripeError as Error).message);
-      
-      user.plan = 'pro';
-      await user.save();
-      
-      // Redirect straight back to dashboard with success flag
-      res.status(200).json({ url: `/dashboard?success=true` });
+      console.error('Stripe error:', stripeError);
+      res.status(500).json({ message: 'Error initiating Stripe checkout', error: (stripeError as Error).message });
     }
   } catch (error) {
     res.status(500).json({ message: 'Error in checkout process', error: (error as Error).message });
