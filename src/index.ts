@@ -15,8 +15,32 @@ connectDB();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://habitpilot-client.vercel.app',
+  'https://www.habitpilot-client.vercel.app'
+];
+
 app.use(cors({ 
-  origin: process.env.CLIENT_URL || ['http://localhost:3000', 'https://habitpilot-client.vercel.app'], 
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    
+    // Support custom CLIENT_URL if defined
+    if (process.env.CLIENT_URL && origin === process.env.CLIENT_URL) {
+      return callback(null, true);
+    }
+    
+    const isAllowed = allowedOrigins.includes(origin) || 
+                      origin.endsWith('.vercel.app') || 
+                      origin.startsWith('http://localhost:');
+                      
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true 
 }));
 

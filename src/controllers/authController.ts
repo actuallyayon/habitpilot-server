@@ -11,10 +11,11 @@ const generateTokens = (id: string) => {
 };
 
 const setRefreshTokenCookie = (res: Response, token: string) => {
+  const isProd = process.env.NODE_ENV === 'production';
   res.cookie('refreshToken', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
   });
 };
@@ -169,8 +170,11 @@ export const googleAuth = async (req: Request, res: Response): Promise<void> => 
 };
 
 export const logoutUser = (req: Request, res: Response): void => {
+  const isProd = process.env.NODE_ENV === 'production';
   res.cookie('refreshToken', '', {
     httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
     expires: new Date(0)
   });
   res.status(200).json({ message: 'Logged out successfully' });
