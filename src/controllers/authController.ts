@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
 import User from '../models/User';
+import { AuthRequest } from '../middlewares/auth';
 
 const generateTokens = (id: string) => {
   const accessToken = jwt.sign({ id }, process.env.JWT_ACCESS_SECRET as string, { expiresIn: '15m' });
@@ -204,5 +205,39 @@ export const logoutUser = (req: Request, res: Response): void => {
     sameSite: isProd ? 'none' : 'lax',
     expires: new Date(0)
   });
-  res.status(200).json({ message: 'Logged out successfully' });
+  res.json({ message: 'Logged out' });
+};
+
+export const updateProfile = async (req: AuthRequest, res: Response): Promise<void> => {
+  const { name, password } = req.body;
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      res.status(404).json({ message: 'User not found' });
+      return;
+    }
+
+    if (name) user.name = name;
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      user.passwordHash = await bcrypt.hash(password, salt);
+    }
+
+    await user.save();
+
+    res.json({
+      message: 'Profile updated successfully',
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        plan: user.plan,
+        role: user.role,
+        status: user.status,
+        avatarUrl: user.avatarUrl
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating profile', error: (error as Error).message });
+  }
 };
