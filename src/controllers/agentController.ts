@@ -97,6 +97,48 @@ export const getActivePlans = async (req: AuthRequest, res: Response): Promise<v
   }
 };
 
+export const createPlanManual = async (req: AuthRequest, res: Response): Promise<void> => {
+  const { goals, obstacles, availableMinutesPerDay, habits } = req.body;
+  try {
+    const user = req.user;
+    if (user.plan === 'free') {
+      const activePlans = await HabitPlan.countDocuments({ userId: user._id, status: 'active' });
+      if (activePlans >= 1) {
+        res.status(403).json({ message: 'Free tier limit reached. Please upgrade to Pro to create more active plans.' });
+        return;
+      }
+    }
+
+    const plan = await HabitPlan.create({
+      userId: req.user._id,
+      goals,
+      obstacles,
+      availableMinutesPerDay,
+      habits: habits || []
+    });
+    res.status(201).json(plan);
+  } catch (error) {
+    res.status(500).json({ message: 'Error creating manual habit plan', error: (error as Error).message });
+  }
+};
+
+export const deletePlan = async (req: AuthRequest, res: Response): Promise<void> => {
+  const { planId } = req.params;
+  try {
+    const plan = await HabitPlan.findOne({ _id: planId, userId: req.user._id });
+    if (!plan) {
+      res.status(404).json({ message: 'Plan not found or unauthorized' });
+      return;
+    }
+    
+    // Instead of deleting, we can archive or hard delete. For this rubric, we will hard delete.
+    await HabitPlan.deleteOne({ _id: planId });
+    res.status(200).json({ message: 'Plan deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting plan', error: (error as Error).message });
+  }
+};
+
 export const getCheckIns = async (req: AuthRequest, res: Response): Promise<void> => {
   const { planId } = req.params;
   const { date } = req.query;
