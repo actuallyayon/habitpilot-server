@@ -42,7 +42,7 @@ export const draftHabitPlan = async (goals: string[], obstacles: string, availab
   const messages = [
     {
       role: 'user',
-      content: `Create a habit stack for a user. Goals: ${goals.join(", ")}. Obstacles: ${obstacles}. Available time per day: ${availableMinutes} minutes. Return a JSON object with a "habits" array containing 3-5 habits. Each habit needs a name, a trigger, a minimum viable version, and a reason for choosing it.`
+      content: `Create a habit stack for a user. Goals: ${goals.join(", ")}. Obstacles: ${obstacles}. Available time per day: ${availableMinutes} minutes. Return a JSON object with a "habits" array containing 3-5 habits. Each habit object MUST exactly match these keys: "name", "trigger", "minVersion" (the minimum viable version), and "reason".`
     }
   ];
   return callLLM(messages, onboardingPlanSchema);
