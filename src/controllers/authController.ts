@@ -47,6 +47,7 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
         name: user.name,
         email: user.email,
         plan: user.plan,
+        role: user.role,
         accessToken
       });
     } else {
@@ -71,8 +72,27 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
         name: 'Demo User',
         email: 'demo@habitpilot.com',
         passwordHash,
-        plan: 'free'
+        plan: 'free',
+        role: 'user'
       });
+    }
+
+    // Auto-create admin user if it doesn't exist
+    if (!user && email === 'admin@habitpilot.com' && password === 'adminsecure987') {
+      const salt = await bcrypt.genSalt(10);
+      const passwordHash = await bcrypt.hash(password, salt);
+      user = await User.create({
+        name: 'Admin User',
+        email: 'admin@habitpilot.com',
+        passwordHash,
+        plan: 'pro',
+        role: 'admin'
+      });
+    }
+
+    if (user && user.status === 'blocked') {
+      res.status(403).json({ message: 'Your account has been blocked by an administrator' });
+      return;
     }
 
     if (user && user.passwordHash && (await bcrypt.compare(password, user.passwordHash))) {
@@ -83,6 +103,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
         name: user.name,
         email: user.email,
         plan: user.plan,
+        role: user.role,
         accessToken
       });
     } else {
@@ -153,7 +174,12 @@ export const googleAuth = async (req: Request, res: Response): Promise<void> => 
       await user.save();
     }
 
-      const { accessToken, refreshToken } = generateTokens(user._id.toString());
+      if (user && user.status === 'blocked') {
+      res.status(403).json({ message: 'Your account has been blocked by an administrator' });
+      return;
+    }
+
+    const { accessToken, refreshToken } = generateTokens(user._id.toString());
     setRefreshTokenCookie(res, refreshToken);
     
     res.json({
@@ -162,6 +188,7 @@ export const googleAuth = async (req: Request, res: Response): Promise<void> => 
       email: user.email,
       plan: user.plan,
       avatarUrl: user.avatarUrl,
+      role: user.role,
       accessToken
     });
   } catch (error) {

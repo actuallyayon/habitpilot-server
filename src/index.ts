@@ -8,6 +8,7 @@ import agentRoutes from './routes/agentRoutes';
 import stripeRoutes from './routes/stripeRoutes';
 import uploadRoutes from './routes/uploadRoutes';
 import exploreRoutes from './routes/exploreRoutes';
+import adminRoutes from './routes/adminRoutes';
 
 dotenv.config();
 connectDB();
@@ -55,6 +56,7 @@ app.use('/api/agent', agentRoutes);
 app.use('/api/stripe', stripeRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/explore', exploreRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });

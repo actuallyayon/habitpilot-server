@@ -8,6 +8,8 @@ export interface IUser extends Document {
   avatarUrl?: string;
   plan: 'free' | 'pro';
   stripeCustomerId?: string;
+  role: 'user' | 'admin';
+  status: 'active' | 'blocked';
   createdAt: Date;
 }
 
@@ -19,6 +21,8 @@ const UserSchema: Schema = new Schema({
   avatarUrl: { type: String },
   plan: { type: String, enum: ['free', 'pro'], default: 'free' },
   stripeCustomerId: { type: String },
+  role: { type: String, enum: ['user', 'admin'], default: 'user' },
+  status: { type: String, enum: ['active', 'blocked'], default: 'active' },
   createdAt: { type: Date, default: Date.now },
 });
 
