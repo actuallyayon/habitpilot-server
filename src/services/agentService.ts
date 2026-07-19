@@ -17,12 +17,12 @@ async function callLLM<T>(messages: any[], schema: z.ZodSchema<T>): Promise<T> {
   const completion = await openai.chat.completions.create({
     model: "llama-3.3-70b-versatile",
     messages: [systemMessage, ...messages],
-    response_format: { type: "json_object" },
     temperature: 0.2,
   });
 
   const rawJson = completion.choices[0]?.message?.content || "{}";
-  const parsed = JSON.parse(rawJson);
+  const cleanJson = rawJson.replace(/```json/g, '').replace(/```/g, '').trim();
+  const parsed = JSON.parse(cleanJson);
   
   // Use Zod to parse and validate it fits
   return schema.parse(parsed);
